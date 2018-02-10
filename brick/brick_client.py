@@ -14,30 +14,41 @@ MESSAGE = (
 	"with a current draw of {1} amps."
 	)
 
-# Have these as part of a robot class with actions as class methods
-left_m = ev3.LargeMotor('outA')
-right_m = ev3.LargeMotor('outB')
+class Robot:
+	""" Object to encapsulate the robot. """
+	
+	# Have these as part of a robot class with actions as class methods
+	left_m = ev3.LargeMotor('outA')
+	right_m = ev3.LargeMotor('outB')
+	p = ev3.PowerSupply()
+	
+	@property
+	def state(self):
+		""" Get state and return as encoded JSON string. """
+		return json.dumps( {
+			'volts':self.p.measured_volts, 
+			'amps':self.p.measured_amps, 
+			'sensor_state':[s.value() for s in ev3.list_sensors()]
+		} )
+	
+	# Actions
+	# left - forward 1 unit
+	# left - backward 1 unit
+	# right - forward 1 unit
+	# right - backward 1 unit
+
+
 
 #m.run_timed(time_sp=3000, speed_sp=500)
 	
-p = ev3.PowerSupply()
+
 #sensors = ev3.list_sensors()
  
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((TCP_IP, TCP_PORT))
+robot = Robot()
 while 1:
-	volts = p.measured_volts
-	amps = p.measured_amps
-	sensor_state = list()
-	for sensor in ev3.list_sensors():
-		sensor_state.append(sensor.value())
-	robot_state = {
-		'volts':volts, 
-		'amps':amps, 
-		'sensor_state':sensor_state
-		}
-	message = json.dumps(robot_state)
-	s.send(message.encode('UTF-8'))
+	s.send(robot.state.encode('UTF-8'))
 	data = s.recv(BUFFER_SIZE)
 	print("received data:", data)
 s.close()
