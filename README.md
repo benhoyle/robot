@@ -10,6 +10,7 @@ It is mainly designed for asynchronous communication.
 Maybe back to socket - here's a tutorial 
 - https://pythonspot.com/python-network-sockets-programming-tutorial/.
 
+To send a dictionary over TCP/IP we can encode in a JSON string.
 
 To do:
 
