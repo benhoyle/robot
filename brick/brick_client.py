@@ -9,10 +9,6 @@ import json
 TCP_IP = os.environ['HOST']
 TCP_PORT = int(os.environ['PORT'])
 BUFFER_SIZE = 1024
-MESSAGE = (
-	"My battery is running at {0} volts."
-	"with a current draw of {1} amps."
-	)
 
 class Robot:
 	""" Object to encapsulate the robot. """
