@@ -2,6 +2,8 @@
  
 import socket
 import os
+from random import randint
+import json
  
 TCP_IP = os.environ['HOST']
 TCP_PORT = int(os.environ['PORT'])
@@ -20,7 +22,10 @@ s.listen(1)
 def predict_action(robot_state):
 	""" Take the current robot state and predict the next action. """
 	# Needs to return a string that is interpretable by the robot
-	return "Go!".encode('UTF-8')
+	action = [0]*4 # Create a blank action vector - [LF, LR, RF, RR]
+	action[randint(0,3)] = 1 # Randomly select an action
+	message = json.dumps(action)
+	return message.encode('UTF-8')
 	
 def get_state():
 	""" Get the current state of the robot. """
