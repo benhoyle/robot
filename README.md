@@ -7,6 +7,7 @@ This can form a base for AI projects.
 
 * A Lego Mindstorms ev3 kit.
 * An install on the ev3 brick of the brilliant [ev3dev](https://www.ev3dev.org/docs/getting-started/)
+** Use the "stretch" install to support the ev3dev2 python library.
 * Some form of robot with a left motor on InputA and a right motor on InputB.
 
 ## Background

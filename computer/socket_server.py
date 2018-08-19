@@ -84,7 +84,7 @@ class RobotBrain:
     def send_action(self, action):
         """Send an action to the robot.
 
-        action is an array [LF, LR, RF, RR] where 1 indicates action
+        action is an array [L, R, F, B] where 1 indicates action
         and 0 indicates no action.
         """
         message = json.dumps(action).encode('UTF-8')
@@ -117,19 +117,19 @@ class RobotBrain:
             elif ch == "a":
                 # Go left
                 print("Left")
-                self.send_action([0, 0, 1, 0])
+                self.send_action([1, 0, 0, 0])
             elif ch == "d":
                 # Go right
                 print("Right")
-                self.send_action([1, 0, 0, 0])
+                self.send_action([0, 1, 0, 0])
             elif ch == "w":
                 # Go forward
                 print("Forward")
-                self.send_action([1, 0, 1, 0])
+                self.send_action([0, 0, 1, 0])
             elif ch == "s":
                 # Go backwards
                 print("Backward")
-                self.send_action([0, 1, 0, 1])
+                self.send_action([0, 0, 0, 1])
 
 # conn, addr = s.accept()
 # print('Connection address:', addr)

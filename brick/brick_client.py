@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 
 import socket
-import ev3dev.ev3 as ev3
+from ev3dev2.motor import (
+    MoveTank, OUTPUT_A, OUTPUT_B, MoveSteering, SpeedPercent
+)
+from ev3dev2.power import PowerSupply
+from ev3dev2.sensor import list_sensors
 import os
 import json
 import termios
@@ -21,27 +25,38 @@ def getch():
     return ch
 
 
-TCP_IP = os.environ['HOST']
-TCP_PORT = int(os.environ['PORT'])
-BUFFER_SIZE = 1024
-
 def argmax(vector):
     return vector.index(max(vector))
+
 
 class Robot:
     """ Object to encapsulate the robot. """
 
     # Have these as part of a robot class with actions as class methods
-    left_m = ev3.LargeMotor('outA')
-    right_m = ev3.LargeMotor('outB')
-    p = ev3.PowerSupply()
-    cs = ev3.ColorSensor()
-    cs.mode = 'COL-AMBIENT'
+    # left_m = LargeMotor(OUTPUT_A)
+    # right_m = LargeMotor(OUTPUT_B)
+    tank_drive = MoveTank(OUTPUT_A, OUTPUT_B)
+    steering_drive = MoveSteering(OUTPUT_A, OUTPUT_B)
+    p = PowerSupply()
+    # cs = ev3.ColorSensor()
+    # cs.mode = 'COL-AMBIENT'
+
+    # We want to use MoveTank and MoveSteering for the control
 
     def __init__(self):
         """ Initialise Robot and connection. """
+        TCP_IP = os.environ.get('HOST')
+        TCP_PORT = int(os.environ.get('PORT'))
+        self.buffer_size = 1024
+        if TCP_IP and TCP_PORT:
+            self.build_socket(TCP_IP, TCP_PORT)
+        else:
+            print("Please set the HOST and PORT environment variables")
+
+    def build_socket(self, ip, port):
+        """Build socket on ip address with port."""
         self.pipe = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.pipe.connect((TCP_IP, TCP_PORT))
+        self.pipe.connect((ip, port))
 
     @property
     def state(self):
@@ -49,48 +64,36 @@ class Robot:
         return json.dumps( {
             'volts':self.p.measured_volts,
             'amps':self.p.measured_amps,
-            'sensor_state':[s.value() for s in ev3.list_sensors()]
+            'sensor_state':[s.value() for s in list_sensors()]
         } )
 
-    def a_to_m(self, action):
-        """ From an action vector return motor and direction parameters."""
-        index = argmax(action)
-        # You can probably do this more concisely
-        if index > 1:
-            motor = self.right_m
-        else:
-            motor = self.left_m
-        # If index is even - go forward, else reverse
-        if index % 2 == 0:
-            direction = 1
-        else:
-            direction = -1
-        return motor, direction
-
     def take_action(self, action):
-        """ Take an action when passed an array instructing the action."""
-        # Actions
-        # left - forward 1 unit - LF
-        # left - backward 1 unit - LR
-        # right - forward 1 unit - RF
-        # right - backward 1 unit - RR
-        # encode as a vector [LF, LR, RF, RR] where 1 indicates chosen action
-        unit_time = 3000 # Set number of ms to run as a unit time period
-        unit_speed = 500 # Set tachos for a unit speed
+        """ Take an action when passed an array instructing the action.
 
-        # Forward and reverse are not powering both motors at the same time
+        Actions
+        left - forward 1 unit - L
+        right - backward 1 unit - R
+        forward - forward 1 unit - F
+        back - backward 1 unit - B
+        encode as a vector [L, R, F, B] where 1 indicates chosen action
+        """
 
-        # Convert from one hot action vector to motor and direction selection
-        motor, direction = self.a_to_m(action)
-        motor.run_timed(
-            time_sp=unit_time,
-            speed_sp=direction*unit_speed
-            )
+        speed = 50
+        time = 1
+        if action[0]:
+            self.steering_drive.on_for_seconds(-100, SpeedPercent(50), time)
+        elif action[1]:
+            self.steering_drive.on_for_seconds(100, SpeedPercent(50), time)
+        elif action[2]:
+            self.tank_drive.on_for_seconds(speed, speed, time)
+        elif action[3]:
+            self.tank_drive.on_for_seconds(-1*speed, -1*speed, time)
+
 
     def communicate(self):
         """ Send state vector and receive action vector. """
         self.pipe.send(self.state.encode('UTF-8'))
-        return json.loads(self.pipe.recv(BUFFER_SIZE).decode('UTF-8'))
+        return json.loads(self.pipe.recv(self.buffer_size).decode('UTF-8'))
 
     def remote_control(self):
         """Receive remote commands."""
