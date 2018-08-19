@@ -78,12 +78,12 @@ class Robot:
         encode as a vector [L, R, F, B] where 1 indicates chosen action
         """
 
-        speed = 50
+        speed = SpeedPercent(75)
         time = 1
         if action[0]:
-            self.steering_drive.on_for_seconds(-100, SpeedPercent(50), time)
+            self.steering_drive.on_for_seconds(-100, SpeedPercent(50), time/2)
         elif action[1]:
-            self.steering_drive.on_for_seconds(100, SpeedPercent(50), time)
+            self.steering_drive.on_for_seconds(100, SpeedPercent(50), time/2)
         elif action[2]:
             self.tank_drive.on_for_seconds(speed, speed, time)
         elif action[3]:
@@ -93,7 +93,13 @@ class Robot:
     def communicate(self):
         """ Send state vector and receive action vector. """
         self.pipe.send(self.state.encode('UTF-8'))
-        return json.loads(self.pipe.recv(self.buffer_size).decode('UTF-8'))
+        try:
+            data = json.loads(self.pipe.recv(self.buffer_size).decode('UTF-8'))
+        except json.decoder.JSONDecodeError:
+            # JSON gives us an error if there are multiple JSON objects
+            # in the buffer
+            data = [0,0,0,0]
+        return data
 
     def remote_control(self):
         """Receive remote commands."""

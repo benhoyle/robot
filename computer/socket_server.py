@@ -53,9 +53,12 @@ class RobotBrain:
         self.socket.listen(1)
         self.conn = None
         self.addr = None
+        # Wait for a connection
+        self.wait_for_connect()
 
     def wait_for_connect(self):
         """Wait for an incoming connection."""
+        print("Waiting for a connection to client.")
         while not self.conn:
             self.conn, self.addr = self.socket.accept()
             print('Connection to IP:', self.addr)
@@ -74,12 +77,17 @@ class RobotBrain:
         # Needs to return a string that is interpretable by the robot
         action = [0]*4 # Create a blank action vector - [LF, LR, RF, RR]
         action[randint(0, 3)] = 1 # Randomly select an action
-
+        message = json.dumps(action).encode('UTF-8')
         return message.encode('UTF-8')
 
     def get_state(self):
         """Get the current state of the robot."""
-        pass
+        try:
+            robot_state = json.loads(self.conn.recv(self.buffer_size).decode('UTF-8'))
+        except json.decoder.JSONDecodeError:
+            robot_state = {}
+        return robot_state
+
 
     def send_action(self, action):
         """Send an action to the robot.
@@ -90,14 +98,16 @@ class RobotBrain:
         message = json.dumps(action).encode('UTF-8')
         if self.conn:
             self.conn.send(message)
-            self.logger.info("action: {0}".format(message))
+            robot_state = self.get_state()
+            self.logger.info("state: {0}".format(robot_state))
+            self.logger.info("action: {0}".format(action))
             # We want to log action and received state here
 
 
     def monitor_state(self):
         """Monitor the state of the robot."""
         while 1:
-            robot_state = self.conn.recv(self.buffer_size)
+            robot_state = self.get_state()
             if not robot_state: break
             print("Robot State:", robot_state)
 

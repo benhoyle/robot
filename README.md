@@ -75,5 +75,14 @@ On the server you should see a connection register:
 Now run - ```r.remote_control()``` on the robot and ```brian.remote_control()```
 on the server. You should be able to use the a-w-s-d keys to move L-F-B-R!
 
+## Getting State - Action Pairs
 
+Everytime the robot receives a command it sends its state to the server
+before executing the command. Hence, the server sends a command then
+waits to hear the state in reply then logs both the received state and the
+sent command.
+
+# Ideas
+
+The play_sound method offers opportunities for some AI music generation.
 
