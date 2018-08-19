@@ -43,12 +43,17 @@ Copy the files from the ```brick``` folder into the home directory of
 the ```robot``` user. I use SFTP to access the file system and just
 copy the files across.
 
-## Run the Server on the Computer
+## Running Remote Control
+
+### Run the Brain on the Server
 
 Navigate to the top of the directories (e.g. the robot folder).
 
-On the server computer run:
-```python computer/socket_server.py```
+Run python - ```python```.
+Import the RobotBrain then run wait_for_connect:
+```from computer.socket_server import RobotBrain
+brian = RobotBrain()
+brian.wait_for_connect()```
 
 ## Run the Brick
 
@@ -63,6 +68,8 @@ r = Robot()```
 On the server you should see a connection register:
 ```Connection address: ('[Robot IP Address', X)```
 
+Now run - ```r.remote_control()``` on the robot and ```brian.remote_control()```
+on the server. You should be able to use the a-w-s-d keys to move L-F-B-R!
 
 
 
