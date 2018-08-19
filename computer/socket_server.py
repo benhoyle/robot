@@ -8,6 +8,7 @@ import os
 from random import randint
 import json
 import termios
+import logging
 
 # Can we record control with the remote control and then
 # try to recreate this?
@@ -33,11 +34,20 @@ class RobotBrain:
 
     def __init__(self):
         """Init Functions."""
+        # Initialise Logging
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.DEBUG)
+        fh = logging.FileHandler('robotdata.log')
+        fh.setLevel(logging.DEBUG)
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        fh.setFormatter(formatter)
+        self.logger.addHandler(fh)
+        # Get Host / Port Variables
         ip = os.environ['HOST']
         port = int(os.environ['PORT'])
-
+        # Initialise Socket
         self.buffer_size = 1024
-
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((ip, port))
         self.socket.listen(1)
@@ -46,7 +56,7 @@ class RobotBrain:
 
     def wait_for_connect(self):
         """Wait for an incoming connection."""
-        while True:
+        while not self.conn:
             self.conn, self.addr = self.socket.accept()
             print('Connection to IP:', self.addr)
 
@@ -80,6 +90,7 @@ class RobotBrain:
         message = json.dumps(action).encode('UTF-8')
         if self.conn:
             self.conn.send(message)
+            self.logger.info("action: {0}".format(message))
             # We want to log action and received state here
 
 
