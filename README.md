@@ -51,9 +51,11 @@ Navigate to the top of the directories (e.g. the robot folder).
 
 Run python - ```python```.
 Import the RobotBrain then run wait_for_connect:
-```from computer.socket_server import RobotBrain
+```
+from computer.socket_server import RobotBrain
 brian = RobotBrain()
-brian.wait_for_connect()```
+brian.wait_for_connect()
+```
 
 ## Run the Brick
 
@@ -61,9 +63,11 @@ SSH into the robot:
 ```ssh robot@ev3dev.local```
 Then when logged in check the HOST and PORT env variables match.
 Then run:
-```python3
+```
+python3
 from brick_client import Robot
-r = Robot()```
+r = Robot()
+```
 
 On the server you should see a connection register:
 ```Connection address: ('[Robot IP Address', X)```
